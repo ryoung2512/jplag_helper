@@ -1,5 +1,5 @@
 # jplag_helper
-Simple api wrapper for jplag.
+This is a simple api wrapper for jplag.
 
 Import db.sql to setup database and table.
 
