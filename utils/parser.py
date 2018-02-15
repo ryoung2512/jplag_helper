@@ -24,17 +24,21 @@ class Parser(HTMLParser):
     def getParsedData(self):
         return self.parsed_data
 
+    def cleanParsedData(self):
+        self.parsed_data[:] = []
+
 """
 Parses the index.html result
 """
 def parseFile(folder):
     file = folder + "/index.html"
     with open(file, "r") as f:
-        content = f.read().replace("\n", "")
+        content = f.read().replace("\n", "") # get rid of new line characters
     parse = Parser()
     parse.feed(content)
     data = parse.getParsedData()
     sanitized_data = sanitizeData(data)
+    parse.cleanParsedData() # have to reset parsed data in between calls
     return sanitized_data
 
 """
@@ -55,7 +59,7 @@ def sanitizeData(data):
             if (odd % 2 == 0):
                 student2 = data[i]
             else:
-                similarity = data[i].replace("(", "")
+                similarity = data[i].replace("(", "") # (50%) - > 50
                 similarity = similarity.replace(")", "")
                 similarity = similarity.replace("%", "")
                 temp = [student1, student2, similarity]
