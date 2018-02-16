@@ -27,12 +27,15 @@ class Helper(Resource):
         # Fetch needed variables
         language = request.args.get('language')
         directory = request.args.get('directory')
-        language = checkLanguage(language)
-        folder = executejplag(language, directory)
+        studentID =  request.args.get('studentID')
+        threshold = request.args.get('threshold')
+        language = checkLanguage(language)  #checks to make sure language is properly parsed
+        folder = executejplag(language, directory, threshold)
         data = p.parseFile(folder)
         db.storeData(data, config, directory)
         subprocess.check_output(["rm", "-r" , folder])
-        return json.dumps(data)
+        dump = json.dumps(studentInfo(data,studentID))
+        return dump
 
 """
 Replaces language variable so it can be passed properly through api.
@@ -43,12 +46,38 @@ def checkLanguage(language):
     return language
 
 """
+Generate folder name
+"""
+def genName():
+    folder = ''
+    while True:
+        folder = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+        if(not(os.path.isdir(folder))):
+            break
+    return folder
+
+"""
+Fetch student specific information
+"""
+def studentInfo(data, studentID):
+    if(studentID == None):
+        return data
+    studentData = []
+    for i in range(len(data)):
+        d = data[i]
+        if(d[0] == studentID or d[1] == studentID):
+            studentData.append(d)
+    return studentData
+"""
 Executes the jplag script
 """
-def executejplag(lang, direct):
+def executejplag(lang, direct, threshold):
     # generates a random folder name so chance of conflicting folders if run on the same time is minimal
-    folder = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
-    subprocess.check_output(["java", "-jar", "jplag.jar", "-l", lang, "-s", direct, "-r", folder])
+    folder = genName()
+    if(threshold == None):
+        threshold = "20"
+    threshold = threshold + "%"
+    subprocess.check_output(["java", "-jar", "jplag.jar", "-l", lang, "-s", direct, "-r", folder, "-m", threshold])
     return folder
 
 
